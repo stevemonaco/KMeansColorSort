@@ -1,0 +1,142 @@
+﻿<Window
+    x:Class="KMeansColorSort.Views.ShellView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:KMeansColorSort.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:mw="http://schemas.modernwpf.com/2019"
+    Title="K-Means Color Sort"
+    Width="800"
+    Height="450"
+    mc:Ignorable="d">
+    <StackPanel x:Name="mainGrid">
+        <StackPanel>
+            <TextBlock HorizontalAlignment="Center" Text="Unsorted" />
+            <ItemsControl ItemsSource="{Binding UnsortedColors}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderBrush="Black" BorderThickness="1">
+                            <Border BorderBrush="White" BorderThickness="1">
+                                <Rectangle Width="8" Height="32">
+                                    <Rectangle.Fill>
+                                        <SolidColorBrush Color="{Binding Converter={StaticResource ColorModelToMediaColorConverter}}" />
+                                    </Rectangle.Fill>
+                                </Rectangle>
+                            </Border>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+        </StackPanel>
+
+        <StackPanel Margin="0,10,0,0">
+            <TextBlock HorizontalAlignment="Center" Text="HSL Sorted" />
+            <ItemsControl ItemsSource="{Binding HslSortedColors}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderBrush="Black" BorderThickness="1">
+                            <Border BorderBrush="White" BorderThickness="1">
+                                <Rectangle Width="8" Height="32">
+                                    <Rectangle.Fill>
+                                        <SolidColorBrush Color="{Binding Converter={StaticResource ColorModelToMediaColorConverter}}" />
+                                    </Rectangle.Fill>
+                                </Rectangle>
+                            </Border>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+        </StackPanel>
+
+        <StackPanel Margin="0,10,0,0">
+            <TextBlock HorizontalAlignment="Center" Text="K-Means Clustered, Hsl Sorted" />
+
+            <StackPanel Margin="6,6,0,0" Orientation="Horizontal">
+                <TextBlock VerticalAlignment="Center" Text="Cluster Count" />
+                <mw:NumberBox
+                    Margin="6,0,0,0"
+                    Minimum="1"
+                    SpinButtonPlacementMode="Inline"
+                    Value="{Binding ClusterCount}" />
+
+                <TextBlock
+                    Margin="20,0,0,0"
+                    VerticalAlignment="Center"
+                    Text="Weights" />
+
+                <TextBlock
+                    Margin="6,0,0,0"
+                    VerticalAlignment="Center"
+                    Text="H" />
+                <mw:NumberBox
+                    Margin="6,0,0,0"
+                    Minimum="0"
+                    SpinButtonPlacementMode="Inline"
+                    Value="{Binding HueWeight}" />
+
+                <TextBlock
+                    Margin="6,0,0,0"
+                    VerticalAlignment="Center"
+                    Text="S" />
+                <mw:NumberBox
+                    Margin="6,0,0,0"
+                    Minimum="0"
+                    SpinButtonPlacementMode="Inline"
+                    Value="{Binding SaturationWeight}" />
+
+                <TextBlock
+                    Margin="6,0,0,0"
+                    VerticalAlignment="Center"
+                    Text="L" />
+                <mw:NumberBox
+                    Margin="6,0,0,0"
+                    Minimum="0"
+                    SpinButtonPlacementMode="Inline"
+                    Value="{Binding LightnessWeight}" />
+
+                <CheckBox
+                    Margin="20,0,0,0"
+                    Content="Show Bands"
+                    IsChecked="{Binding ShowBands}" />
+            </StackPanel>
+
+            <ItemsControl Margin="0,6,0,0" ItemsSource="{Binding ClusterSortedColors}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border BorderBrush="Black" BorderThickness="1">
+                            <Border BorderBrush="White" BorderThickness="1">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding Band}" Visibility="{Binding ElementName=mainGrid, Path=DataContext.ShowBands, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
+                                    <Rectangle Width="8" Height="32">
+                                        <Rectangle.Fill>
+                                            <SolidColorBrush Color="{Binding Converter={StaticResource ColorModelToMediaColorConverter}}" />
+                                        </Rectangle.Fill>
+                                        <Rectangle.ToolTip>
+                                            <TextBlock Text="{Binding Converter={StaticResource ColorModelToTextConverter}}" />
+                                        </Rectangle.ToolTip>
+                                    </Rectangle>
+                                </StackPanel>
+                            </Border>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+            </ItemsControl>
+        </StackPanel>
+    </StackPanel>
+</Window>
