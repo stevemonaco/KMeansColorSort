@@ -11,6 +11,43 @@
     Width="900"
     Height="450"
     mc:Ignorable="d">
+    <Window.Resources>
+        <!--  Colors without banding  -->
+        <DataTemplate x:Key="colorTemplate">
+            <Border BorderBrush="Black" BorderThickness="1">
+                <Border BorderBrush="White" BorderThickness="1">
+                    <Rectangle Width="8" Height="32">
+                        <Rectangle.Fill>
+                            <SolidColorBrush Color="{Binding Converter={StaticResource ColorModelToMediaColorConverter}}" />
+                        </Rectangle.Fill>
+                        <Rectangle.ToolTip>
+                            <TextBlock Text="{Binding Converter={StaticResource ColorModelToTextConverter}}" />
+                        </Rectangle.ToolTip>
+                    </Rectangle>
+                </Border>
+            </Border>
+        </DataTemplate>
+
+        <!--  Color with banding  -->
+        <DataTemplate x:Key="bandColorTemplate">
+            <Border BorderBrush="Black" BorderThickness="1">
+                <Border BorderBrush="White" BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="{Binding Band}" Visibility="{Binding ElementName=mainGrid, Path=DataContext.ShowBands, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
+                        <Rectangle Width="8" Height="32">
+                            <Rectangle.Fill>
+                                <SolidColorBrush Color="{Binding Converter={StaticResource ColorModelToMediaColorConverter}}" />
+                            </Rectangle.Fill>
+                            <Rectangle.ToolTip>
+                                <TextBlock Text="{Binding Converter={StaticResource ColorModelToTextConverter}}" />
+                            </Rectangle.ToolTip>
+                        </Rectangle>
+                    </StackPanel>
+                </Border>
+            </Border>
+        </DataTemplate>
+    </Window.Resources>
+
     <Grid x:Name="mainGrid" Margin="5,5,0,5">
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
@@ -40,23 +77,7 @@
                 <!--  Unsorted Colors Panel  -->
                 <StackPanel>
                     <TextBlock HorizontalAlignment="Center" Text="Unsorted" />
-                    <ItemsControl ItemsSource="{Binding UnsortedColors}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border BorderBrush="Black" BorderThickness="1">
-                                    <Border BorderBrush="White" BorderThickness="1">
-                                        <Rectangle Width="8" Height="32">
-                                            <Rectangle.Fill>
-                                                <SolidColorBrush Color="{Binding Converter={StaticResource ColorModelToMediaColorConverter}}" />
-                                            </Rectangle.Fill>
-                                            <Rectangle.ToolTip>
-                                                <TextBlock Text="{Binding Converter={StaticResource ColorModelToTextConverter}}" />
-                                            </Rectangle.ToolTip>
-                                        </Rectangle>
-                                    </Border>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
+                    <ItemsControl ItemTemplate="{StaticResource colorTemplate}" ItemsSource="{Binding UnsortedColors}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <WrapPanel Orientation="Horizontal" />
@@ -68,23 +89,7 @@
                 <!--  HSL Sorted Colors Panel  -->
                 <StackPanel Margin="0,10,0,0">
                     <TextBlock HorizontalAlignment="Center" Text="HSL Sorted" />
-                    <ItemsControl ItemsSource="{Binding HslSortedColors}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border BorderBrush="Black" BorderThickness="1">
-                                    <Border BorderBrush="White" BorderThickness="1">
-                                        <Rectangle Width="8" Height="32">
-                                            <Rectangle.Fill>
-                                                <SolidColorBrush Color="{Binding Converter={StaticResource ColorModelToMediaColorConverter}}" />
-                                            </Rectangle.Fill>
-                                            <Rectangle.ToolTip>
-                                                <TextBlock Text="{Binding Converter={StaticResource ColorModelToTextConverter}}" />
-                                            </Rectangle.ToolTip>
-                                        </Rectangle>
-                                    </Border>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
+                    <ItemsControl ItemTemplate="{StaticResource colorTemplate}" ItemsSource="{Binding HslSortedColors}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <WrapPanel Orientation="Horizontal" />
@@ -144,26 +149,10 @@
                             Value="{Binding LightnessWeight}" />
                     </StackPanel>
 
-                    <ItemsControl Margin="0,6,0,0" ItemsSource="{Binding ClusterSortedColors}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border BorderBrush="Black" BorderThickness="1">
-                                    <Border BorderBrush="White" BorderThickness="1">
-                                        <StackPanel>
-                                            <TextBlock Text="{Binding Band}" Visibility="{Binding ElementName=mainGrid, Path=DataContext.ShowBands, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
-                                            <Rectangle Width="8" Height="32">
-                                                <Rectangle.Fill>
-                                                    <SolidColorBrush Color="{Binding Converter={StaticResource ColorModelToMediaColorConverter}}" />
-                                                </Rectangle.Fill>
-                                                <Rectangle.ToolTip>
-                                                    <TextBlock Text="{Binding Converter={StaticResource ColorModelToTextConverter}}" />
-                                                </Rectangle.ToolTip>
-                                            </Rectangle>
-                                        </StackPanel>
-                                    </Border>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
+                    <ItemsControl
+                        Margin="0,6,0,0"
+                        ItemTemplate="{StaticResource bandColorTemplate}"
+                        ItemsSource="{Binding ClusterSortedColors}">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
                                 <WrapPanel Orientation="Horizontal" />
