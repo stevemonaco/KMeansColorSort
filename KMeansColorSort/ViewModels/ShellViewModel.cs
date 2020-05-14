@@ -1,18 +1,19 @@
 ﻿using System;
 using System.Drawing;
 using System.Linq;
+using System.Collections.Generic;
 using Stylet;
 using Accord.MachineLearning;
-using ColorMine.ColorSpaces.Conversions;
 using KMeansColorSort.Models;
-using ColorMine.ColorSpaces;
-using System.Collections.Generic;
-using Accord.IO;
+using KMeansColorSort.Services;
 
 namespace KMeansColorSort.ViewModels
 {
     class ShellViewModel : Screen
     {
+        private readonly IColorGeneratorService _colorGeneratorService;
+        private Random _random = new Random();
+
         private BindableCollection<ColorModel> _unsortedColors;
         public BindableCollection<ColorModel> UnsortedColors
         {
@@ -85,25 +86,41 @@ namespace KMeansColorSort.ViewModels
             }
         }
 
+        public ShellViewModel(IColorGeneratorService colorGeneratorService)
+        {
+            _colorGeneratorService = colorGeneratorService;
+        }
+
         protected override void OnViewLoaded()
         {
-            var colors = Enum.GetValues(enumType: typeof(KnownColor))
-                .Cast<KnownColor>()
-                .Select(x => Color.FromKnownColor(x))
-                .Where(x => !x.IsSystemColor && x.A > 0)
-                .Select(x => new ColorModel(x.R, x.G, x.B, x.A, x.GetHue(), x.GetSaturation(), x.GetBrightness()));
+            ShowSystemDrawingColors();
+            base.OnViewLoaded();
+        }
 
+        public void ShowSystemDrawingColors()
+        {
+            var colors = _colorGeneratorService.CreateSystemDrawingColors();
             UnsortedColors = new BindableCollection<ColorModel>(colors);
 
-            var hslSorted = colors.OrderBy(x => x.Hue)
+            var hslSorted = UnsortedColors.OrderBy(x => x.Hue)
                 .ThenBy(x => x.Saturation)
                 .ThenBy(x => x.Lightness);
 
             HslSortedColors = new BindableCollection<ColorModel>(hslSorted);
-
             PerformClusterSort();
+        }
 
-            base.OnViewLoaded();
+        public void ShowRandomColors()
+        {
+            var colors = _colorGeneratorService.CreateRandomColors(256, _random);
+            UnsortedColors = new BindableCollection<ColorModel>(colors);
+
+            var hslSorted = UnsortedColors.OrderBy(x => x.Hue)
+                .ThenBy(x => x.Saturation)
+                .ThenBy(x => x.Lightness);
+
+            HslSortedColors = new BindableCollection<ColorModel>(hslSorted);
+            PerformClusterSort();
         }
 
         private void PerformClusterSort()
