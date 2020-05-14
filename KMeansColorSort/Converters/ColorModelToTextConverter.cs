@@ -11,7 +11,7 @@ namespace KMeansColorSort.Converters
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value is ColorModel model)
-                return $"RGB: ({model.R}, {model.G}, {model.B}) HSV: ({model.Hue}, {model.Saturation}, {model.Lightness}) Band: {model.Band}";
+                return $"RGB: ({model.R}, {model.G}, {model.B}) HSL: ({model.Hue}, {model.Saturation}, {model.Lightness}) Band: {model.Band}";
 
             return DependencyProperty.UnsetValue;
         }
