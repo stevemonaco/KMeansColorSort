@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Drawing;
-using System.Linq;
 using System.Collections.Generic;
 using Stylet;
-using Accord.MachineLearning;
 using KMeansColorSort.Models;
 using KMeansColorSort.Services;
 
@@ -12,7 +9,8 @@ namespace KMeansColorSort.ViewModels
     class ShellViewModel : Screen
     {
         private readonly IColorGeneratorService _colorGeneratorService;
-        private Random _random = new Random();
+        private readonly IColorSortService _colorSortService;
+        private readonly Random _random = new Random();
 
         private BindableCollection<ColorModel> _unsortedColors;
         public BindableCollection<ColorModel> UnsortedColors
@@ -42,7 +40,7 @@ namespace KMeansColorSort.ViewModels
             set
             {
                 SetAndNotify(ref _clusterCount, value);
-                PerformClusterSort();
+                SortClusterColors();
             }
         }
 
@@ -60,7 +58,7 @@ namespace KMeansColorSort.ViewModels
             set
             {
                 SetAndNotify(ref _hueWeight, value);
-                PerformClusterSort();
+                SortClusterColors();
             }
         }
 
@@ -71,7 +69,7 @@ namespace KMeansColorSort.ViewModels
             set
             {
                 SetAndNotify(ref _saturationWeight, value);
-                PerformClusterSort();
+                SortClusterColors();
             }
         }
 
@@ -82,13 +80,14 @@ namespace KMeansColorSort.ViewModels
             set
             {
                 SetAndNotify(ref _lightnessWeight, value);
-                PerformClusterSort();
+                SortClusterColors();
             }
         }
 
-        public ShellViewModel(IColorGeneratorService colorGeneratorService)
+        public ShellViewModel(IColorGeneratorService colorGeneratorService, IColorSortService colorSortService)
         {
             _colorGeneratorService = colorGeneratorService;
+            _colorSortService = colorSortService;
         }
 
         protected override void OnViewLoaded()
@@ -97,62 +96,27 @@ namespace KMeansColorSort.ViewModels
             base.OnViewLoaded();
         }
 
-        public void ShowSystemDrawingColors()
+        public void ShowSystemDrawingColors() => 
+            ShowColors(_colorGeneratorService.CreateSystemDrawingColors());
+
+        public void ShowRandomColors() =>
+            ShowColors(_colorGeneratorService.CreateRandomColors(256, _random));
+
+        private void ShowColors(IEnumerable<ColorModel> colors)
         {
-            var colors = _colorGeneratorService.CreateSystemDrawingColors();
             UnsortedColors = new BindableCollection<ColorModel>(colors);
 
-            var hslSorted = UnsortedColors.OrderBy(x => x.Hue)
-                .ThenBy(x => x.Saturation)
-                .ThenBy(x => x.Lightness);
-
+            var hslSorted = _colorSortService.HslSort(UnsortedColors);
             HslSortedColors = new BindableCollection<ColorModel>(hslSorted);
-            PerformClusterSort();
+
+            var clusterSorted = _colorSortService.ClusterSort(UnsortedColors, ClusterCount, HueWeight, SaturationWeight, LightnessWeight);
+            ClusterSortedColors = new BindableCollection<ColorModel>(clusterSorted);
         }
 
-        public void ShowRandomColors()
+        private void SortClusterColors()
         {
-            var colors = _colorGeneratorService.CreateRandomColors(256, _random);
-            UnsortedColors = new BindableCollection<ColorModel>(colors);
-
-            var hslSorted = UnsortedColors.OrderBy(x => x.Hue)
-                .ThenBy(x => x.Saturation)
-                .ThenBy(x => x.Lightness);
-
-            HslSortedColors = new BindableCollection<ColorModel>(hslSorted);
-            PerformClusterSort();
-        }
-
-        private void PerformClusterSort()
-        {
-            Accord.Math.Random.Generator.Seed = 0x12345678;
-
-            var colorInputs = UnsortedColors.Select(x => 
-                new double[] { (x.Hue / 360) * HueWeight, x.Saturation * SaturationWeight, x.Lightness * LightnessWeight })
-                .ToArray();
-            
-            var kmeans = new KMeans(ClusterCount);
-            var clusters = kmeans.Learn(colorInputs);
-            var labels = clusters.Decide(colorInputs);
-
-            var cc = new ColorConverter();
-            var colors = new List<ColorModel>();
-
-            for (int i = 0; i < labels.Length; i++)
-            {
-                var color = UnsortedColors[i];
-                var model = new ColorModel(color.R, color.G, color.B, color.A, color.Hue, color.Saturation, color.Lightness);
-
-                model.Band = labels[i];
-                colors.Add(model);
-            }
-
-            var sorted = colors.OrderBy(x => x.Band)
-                .ThenBy(x => x.Hue)
-                .ThenBy(x => x.Saturation)
-                .ThenBy(x => x.Lightness);
-
-            ClusterSortedColors = new BindableCollection<ColorModel>(sorted);
+            var clusterSorted = _colorSortService.ClusterSort(UnsortedColors, ClusterCount, HueWeight, SaturationWeight, LightnessWeight);
+            ClusterSortedColors = new BindableCollection<ColorModel>(clusterSorted);
         }
     }
 }

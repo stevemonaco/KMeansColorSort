@@ -9,6 +9,7 @@ namespace KMeansColorSort
         protected override void ConfigureIoC(ContainerBuilder builder)
         {
             builder.RegisterType<ColorGeneratorService>().As<IColorGeneratorService>();
+            builder.RegisterType<ColorSortService>().As<IColorSortService>();
         }
     }
 }

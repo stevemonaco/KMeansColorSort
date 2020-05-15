@@ -1,8 +1,8 @@
-﻿using Autofac;
-using Stylet;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
+using Autofac;
+using Stylet;
 
 namespace KMeansColorSort
 {
