@@ -106,6 +106,7 @@
                         <TextBlock VerticalAlignment="Center" Text="Cluster Count" />
                         <mw:NumberBox
                             Margin="6,0,0,0"
+                            Maximum="{Binding ColorCount}"
                             Minimum="1"
                             SpinButtonPlacementMode="Inline"
                             Value="{Binding ClusterCount}" />

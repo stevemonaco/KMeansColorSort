@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Stylet;
 using KMeansColorSort.Models;
 using KMeansColorSort.Services;
+using System.Threading.Tasks;
+using System.Threading;
 
 namespace KMeansColorSort.ViewModels
 {
@@ -11,6 +13,7 @@ namespace KMeansColorSort.ViewModels
         private readonly IColorGeneratorService _colorGeneratorService;
         private readonly IColorSortService _colorSortService;
         private readonly Random _random = new Random();
+        private SemaphoreSlim _operationSemaphore = new SemaphoreSlim(1, 1);
 
         private BindableCollection<ColorModel> _unsortedColors;
         public BindableCollection<ColorModel> UnsortedColors
@@ -33,6 +36,13 @@ namespace KMeansColorSort.ViewModels
             set => SetAndNotify(ref _clusterSortedColors, value);
         }
 
+        private int _colorCount;
+        public int ColorCount
+        {
+            get => _colorCount;
+            set => SetAndNotify(ref _colorCount, value);
+        }
+
         private int _clusterCount = 5;
         public int ClusterCount
         {
@@ -40,7 +50,7 @@ namespace KMeansColorSort.ViewModels
             set
             {
                 SetAndNotify(ref _clusterCount, value);
-                SortClusterColors();
+                _ = SortClusterColors();
             }
         }
 
@@ -58,7 +68,7 @@ namespace KMeansColorSort.ViewModels
             set
             {
                 SetAndNotify(ref _hueWeight, value);
-                SortClusterColors();
+                _ = SortClusterColors();
             }
         }
 
@@ -69,7 +79,7 @@ namespace KMeansColorSort.ViewModels
             set
             {
                 SetAndNotify(ref _saturationWeight, value);
-                SortClusterColors();
+                _ = SortClusterColors();
             }
         }
 
@@ -80,7 +90,7 @@ namespace KMeansColorSort.ViewModels
             set
             {
                 SetAndNotify(ref _lightnessWeight, value);
-                SortClusterColors();
+                _ = SortClusterColors();
             }
         }
 
@@ -90,33 +100,58 @@ namespace KMeansColorSort.ViewModels
             _colorSortService = colorSortService;
         }
 
-        protected override void OnViewLoaded()
+        protected override async void OnInitialActivate()
         {
-            ShowSystemDrawingColors();
-            base.OnViewLoaded();
+            await ShowSystemDrawingColors();
+            base.OnInitialActivate();
         }
 
-        public void ShowSystemDrawingColors() => 
-            ShowColors(_colorGeneratorService.CreateSystemDrawingColors());
+        public async Task ShowSystemDrawingColors() => 
+            await ShowColors(_colorGeneratorService.CreateSystemDrawingColors());
 
-        public void ShowRandomColors() =>
-            ShowColors(_colorGeneratorService.CreateRandomColors(256, _random));
+        public async Task ShowRandomColors() =>
+            await ShowColors(_colorGeneratorService.CreateRandomColors(256, _random));
 
-        private void ShowColors(IEnumerable<ColorModel> colors)
+        private async Task ShowColors(IEnumerable<ColorModel> colors)
         {
-            UnsortedColors = new BindableCollection<ColorModel>(colors);
+            await _operationSemaphore.WaitAsync();
 
-            var hslSorted = _colorSortService.HslSort(UnsortedColors);
-            HslSortedColors = new BindableCollection<ColorModel>(hslSorted);
+            try
+            {
+                await Task.Run(() =>
+                {
+                    UnsortedColors = new BindableCollection<ColorModel>(colors);
+                    ColorCount = UnsortedColors.Count;
 
-            var clusterSorted = _colorSortService.ClusterSort(UnsortedColors, ClusterCount, HueWeight, SaturationWeight, LightnessWeight);
-            ClusterSortedColors = new BindableCollection<ColorModel>(clusterSorted);
+                    var hslSorted = _colorSortService.HslSort(UnsortedColors);
+                    HslSortedColors = new BindableCollection<ColorModel>(hslSorted);
+
+                    var clusterSorted = _colorSortService.ClusterSort(UnsortedColors, ClusterCount, HueWeight, SaturationWeight, LightnessWeight);
+                    ClusterSortedColors = new BindableCollection<ColorModel>(clusterSorted);
+                });
+            }
+            finally
+            {
+                _operationSemaphore.Release();
+            }
         }
 
-        private void SortClusterColors()
+        private async Task SortClusterColors()
         {
-            var clusterSorted = _colorSortService.ClusterSort(UnsortedColors, ClusterCount, HueWeight, SaturationWeight, LightnessWeight);
-            ClusterSortedColors = new BindableCollection<ColorModel>(clusterSorted);
+            await _operationSemaphore.WaitAsync();
+
+            try
+            {
+                await Task.Run(() =>
+                {
+                    var clusterSorted = _colorSortService.ClusterSort(UnsortedColors, ClusterCount, HueWeight, SaturationWeight, LightnessWeight);
+                    ClusterSortedColors = new BindableCollection<ColorModel>(clusterSorted);
+                });
+            }
+            finally
+            {
+                _operationSemaphore.Release();
+            }
         }
     }
 }

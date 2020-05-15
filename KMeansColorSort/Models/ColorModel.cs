@@ -17,7 +17,7 @@
         {
         }
 
-        public ColorModel(int r, int g, int b, int a, double hue, double saturation, double lightness)
+        public ColorModel(int r, int g, int b, int a, double hue, double saturation, double lightness, int band = 0)
         {
             R = r;
             G = g;
@@ -26,6 +26,7 @@
             Hue = hue;
             Saturation = saturation;
             Lightness = lightness;
+            Band = band;
         }
     }
 }
