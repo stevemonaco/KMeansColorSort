@@ -106,6 +106,12 @@ namespace KMeansColorSort.ViewModels
             base.OnInitialActivate();
         }
 
+        protected override void OnClose()
+        {
+            _operationSemaphore?.Dispose();
+            base.OnClose();
+        }
+
         public async Task ShowSystemDrawingColors() => 
             await ShowColors(_colorGeneratorService.CreateSystemDrawingColors());
 
